@@ -259,12 +259,12 @@ def _disabled_skill_names() -> "set[str]":
         return set()
 
 
-def _roster(ctx: Any) -> List[Skill]:
+def _roster(ctx: Any, settings: Optional[Dict[str, Any]] = None) -> List[Skill]:
     """The live roster. The directory scan is cached for ``_ROSTER_TTL`` seconds
     (installs change under us), but the disabled-skill filter runs on every call —
     the cache key is only the directory, while the filtered result also depends on
     config.yaml and the session platform, both mutable inside the TTL."""
-    directory = roster_dir(ctx)
+    directory = roster_dir(ctx, settings)
     key = str(directory)
     now = time.time()
     with _roster_lock:
@@ -318,9 +318,9 @@ def route(ctx: Any, request: str) -> Optional[dict]:
         )
         return None
 
-    skills = _roster(ctx)
+    skills = _roster(ctx, settings)
     if not skills:
-        _notify_once(path, "no-roster", "skip", f"no skills found under {roster_dir(ctx)}")
+        _notify_once(path, "no-roster", "skip", f"no skills found under {roster_dir(ctx, settings)}")
         return None
 
     client = _client(ctx, settings)
