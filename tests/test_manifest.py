@@ -56,6 +56,23 @@ def test_settings_read_never_touches_reserved_roots():
     assert cfg["jev_model"] == "jev-1.14.0"
 
 
+def test_concurrent_json_cache_writes_do_not_collide(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from typesafe_router.cache import JsonCache
+
+    path = tmp_path / "cache.json"
+
+    def writer(i: int) -> None:
+        c = JsonCache(path)
+        c.put({"q": i}, {"a": i})
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        list(pool.map(writer, range(24)))
+
+    final = JsonCache(path)
+    assert len(final) == 24
+
+
 def test_routing_is_opt_in_by_default():
     """Installing must not send anything anywhere until the user turns it on."""
     module = plugin_module()
