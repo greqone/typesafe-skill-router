@@ -47,6 +47,13 @@ def test_declared_hooks_match_what_register_actually_wires():
 def test_config_schema_covers_exactly_the_settings_the_code_reads():
     module = plugin_module()
     assert set(MANIFEST["config_schema"]) == set(module.DEFAULTS)
+    assert not (set(module.DEFAULTS) & StubContext.RESERVED_ROOTS)
+
+def test_settings_read_never_touches_reserved_roots():
+    module = plugin_module()
+    ctx = StubContext({"jev_model": "jev-1.14.0"})
+    cfg = module._settings(ctx)
+    assert cfg["jev_model"] == "jev-1.14.0"
 
 
 def test_routing_is_opt_in_by_default():
